@@ -28,7 +28,7 @@ int setcolor(char);
 
 //Sempre que reiniciar essa função atualiza
 void inicio(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int *tecla_anterior,int campo[L][C]){
-    *tecla_anterior = 'a';
+    *tecla_anterior = 'd';
 	int i,j;
     for(i=0;i<L;i++){
         for(j=0;j<C;j++){
@@ -52,7 +52,7 @@ void inicio(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int *tecla_ant
 
 }
 
-void mapa(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int campo[L][C]){
+void mapa(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int campo[L][C],int *jogo,int *ponto){
     int i,j;
     for(i=0;i<=C+1;i++){
     	setcolor(BORDER_COLOR);
@@ -63,7 +63,7 @@ void mapa(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int campo[L][C])
         for(j=0;j<C;j++){
             if(campo[i][j]==0){
            		setcolor(GRID_COLOR);
-                printf("-");
+                printf(" ");
             }else if(campo[i][j]>0 && *c_head!=campo[i][j]){
                 setcolor(SNAKE_COLOR);
                 printf("%c",177);
@@ -81,6 +81,7 @@ void mapa(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int campo[L][C])
     for(i=0;i<=C+1;i++){
         printf("%c",223);
     }
+    printf("\n\nPontos:%d",*ponto);
    
 	setcolor(0xf);
 }
@@ -105,19 +106,22 @@ int Tecla_Pressionada(){
     }
 }
 
-void cobrinha(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int *tecla_anterior,int campo[L][C]){
+void cobrinha(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int *tecla_anterior,int campo[L][C],int *p_x,int *p_y,int *jogo,int *ponto){
     int tecla = Tecla_Pressionada();
     int x,y;
     x =  *c_x;
     y = *c_y;
     int head = *c_head;
     tecla = tolower(tecla);
-    
+    if(tecla=='p'){
+    	pausa();
+	}
     if(tecla!='d'&&tecla!='w'&&tecla!='a'&&tecla!='s'){
         tecla = *tecla_anterior;
     }
     //printf("%d",tecla);
     //Retorna a tecla como lower case(Garantindo execução tanto para 'a' quanto para 'A') 
+    
     if(tecla == 'd'){
         //Leste
         y++;
@@ -143,35 +147,58 @@ void cobrinha(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int *tecla_a
             x = 0;
         }
     }
+    if(campo[x][y]!=0 && campo[x][y]!=-10){
+	*jogo=1;
+	}
     head++;
     campo[x][y] = head;
     *c_head =head;
     *c_x = x;
     *c_y = y;
     *tecla_anterior = tecla;
-    int i,j;   
-    for(i=0;i<L;i++){
+     int i,j; 
+     //Funcao que remove o c_tail sempre que a cobrinha anda um passo, uma parte de tras dela "some"
+   for(i=0;i<L;i++){
         for(j=0;j<C;j++){
             if(campo[i][j] == *c_tail){
                 campo[i][j]=0;
             }
         }
     }
+    
+   
     int tail = *c_tail;
+    //Se a posição com o valor de *c_head estiver em cima da posição da fruta, ela diminui um de *c_tail.
+	int pontos = *ponto;
+	if(x == *p_x && y == *p_y){
+    	tail-=2;
+    	pontos+=10;
+	}
+     *ponto = pontos;
     tail ++;
     *c_tail = tail;
+      
+    
 }
 
-void adcionar_ponto(int campo[L][C]){
+
+void adcionar_ponto(int campo[L][C],int *p_x,int *p_y){
     int rand_x;
     int rand_y;
     srand(time(NULL));
     do{
-        rand_x = rand()%L + 1;
-        rand_y = rand()%C + 1;
+        rand_x = rand()%(L-1) + 1;
+        rand_y = rand()%(C-1) + 1;
     }while(campo[rand_x][rand_y]!=0);
     campo[rand_x][rand_y] = -10;
-
+	*p_x = rand_x;
+	*p_y = rand_y;
+}
+void pausa(){
+	int tecla=0;
+	while(tecla!='p'){
+		tecla = Tecla_Pressionada();
+	}
 }
     
 main(){
@@ -183,12 +210,16 @@ main(){
     int campo[L+1][C+1];//Matriz com todas as posições
     int i,j;
     int okay=1;
-    inicio(&c_head,&c_tail,&c_x,&c_y,&c_posi,&tecla_anterior,campo);
-	while(1){
+    int p_x,p_y;//Localização da "fruta"
+    int jogo =0;
+    int ponto;
+	inicio(&c_head,&c_tail,&c_x,&c_y,&c_posi,&tecla_anterior,campo);
+    ponto =0;
+	while(jogo==0){
         okay =0;
-        mapa(&c_head,&c_tail,&c_x,&c_y,&c_posi,campo);
+        mapa(&c_head,&c_tail,&c_x,&c_y,&c_posi,campo,&jogo,&ponto);
        	Atualiza_Tela(); 
-        cobrinha(&c_head,&c_tail,&c_x,&c_y,&c_posi,&tecla_anterior,campo);
+        cobrinha(&c_head,&c_tail,&c_x,&c_y,&c_posi,&tecla_anterior,campo,&p_x,&p_y,&jogo,&ponto);
         for(i=0;i<L;i++){
             for(j=0;j<C;j++){
                 if(campo[i][j]==-10){
@@ -199,10 +230,11 @@ main(){
             }
         }
         if(okay!=1){
-            adcionar_ponto(campo);
+            adcionar_ponto(campo,&p_x,&p_y);
         }
-        Sleep(30);
+        Sleep(50);
 	}	
+	system("pause");
 }
 
 void titulo(int x, int y) {
@@ -227,6 +259,7 @@ void gotoxy(int x, int y) {
  	COORD pos = {x, y};
  	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),pos);
 }
+
 
 void cursor (int x) { // mostra ou não o cursor do prompt
 	switch (x) {
