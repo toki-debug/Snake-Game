@@ -1,9 +1,8 @@
 /*
 BCC - UNESP - 2020
 Arissa Yoshida & Gabriel Henrique Garcia
-Snake Game Versão 1.0
+Snake Game Versão 1.0.1
 */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -12,6 +11,20 @@ Snake Game Versão 1.0
 
 #define L 20
 #define C 30
+
+#define SNAKE_COLOR 0xf
+#define BORDER_COLOR 0xc
+#define GRID_COLOR 0x8
+#define FRUIT_COLOR 0xe
+
+//--------- INTERFACE ----------//
+void gotoxy(int,int);
+void cursor(int);
+void titulo (int,int);
+void caixa_s (int,int,int,int);
+
+int setcolor(char);
+//------------------------------//
 
 //Sempre que reiniciar essa função atualiza
 void inicio(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int *tecla_anterior,int campo[L][C]){
@@ -42,32 +55,34 @@ void inicio(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int *tecla_ant
 void mapa(int *c_head,int *c_tail,int *c_x,int *c_y,int *c_posi,int campo[L][C]){
     int i,j;
     for(i=0;i<=C+1;i++){
+    	setcolor(BORDER_COLOR);
         printf("%c",220);
     }printf("\n");
     for(i=0;i<L;i++){
         printf("%c",219);
         for(j=0;j<C;j++){
             if(campo[i][j]==0){
-           
+           		setcolor(GRID_COLOR);
                 printf("-");
             }else if(campo[i][j]>0 && *c_head!=campo[i][j]){
-                
+                setcolor(SNAKE_COLOR);
                 printf("%c",177);
             }else if(*c_head==campo[i][j]){
-              
+              	setcolor(SNAKE_COLOR);
                 printf("%c",178);
             }else if(campo[i][j]==-10){
-              
-                printf("%c",254);
+              	setcolor(FRUIT_COLOR);
+                printf("%c",227);
             }
         }
+        setcolor(BORDER_COLOR);
         printf("%c\n",219);
     }
     for(i=0;i<=C+1;i++){
         printf("%c",223);
     }
    
-
+	setcolor(0xf);
 }
 
 void Atualiza_Tela(){
@@ -159,8 +174,9 @@ void adcionar_ponto(int campo[L][C]){
 
 }
     
-
 main(){
+	cursor(0);
+	titulo(38,7);
     int c_head,c_tail;
     int c_x,c_y,c_posi;
     int tecla_anterior;
@@ -185,8 +201,59 @@ main(){
         if(okay!=1){
             adcionar_ponto(campo);
         }
-        Sleep(100);
+        Sleep(30);
 	}	
+}
+
+void titulo(int x, int y) {
+	setcolor(0xc);
+	caixa_s(x,x+28,y,y+9);
+	setcolor(0xf);
+	gotoxy(x+2,y+1); printf("%c%c%c%c %c   %c %c%c%c%c %c  %c %c%c%c%c",220,220,220,220,220,220,220,220,220,220,220,220,220,220,220,220);
+	gotoxy(x+2,y+2); printf("%c%c%c%c %c%c%c %c %c%c%c%c %c%c%c  %c%c%c%c",219,220,220,220,219,223,220,219,219,220,220,219,219,220,223,219,220,220,220);
+	gotoxy(x+2,y+3); printf("%c%c%c%c %c  %c%c %c  %c %c %c%c %c%c%c%c",220,220,220,219,219,223,219,219,219,219,223,220,219,220,220,220);
+	setcolor(0x8);
+	gotoxy(x+12,y+4); printf("1.0.1");
 	
-   
+	gotoxy(x+6,y+6); 
+	setcolor(0xc); printf("By: ");
+	setcolor(0xf); printf("Toki & Zastim");
+	
+	gotoxy(x+10,y+8); printf("(W A S D)");
+	gotoxy(0,0);
+}
+
+void gotoxy(int x, int y) {
+ 	COORD pos = {x, y};
+ 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),pos);
+}
+
+void cursor (int x) { // mostra ou não o cursor do prompt
+	switch (x) {
+		case 0: {
+			CONSOLE_CURSOR_INFO cursor = {1, FALSE};
+			SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor);
+			break;
+		}
+		case 1: {
+			CONSOLE_CURSOR_INFO cursor = {1, TRUE};
+			SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor);
+			break;
+		}
+	}
+}
+
+void caixa_s (int xmin, int xmax, int ymin, int ymax) {
+	int i;
+	gotoxy(xmin, ymin); printf("%c", 218); for (i = xmin + 1 ; i <= xmax - 1 ; i++) { gotoxy(i, ymin); printf("%c",196); }
+	gotoxy(xmin, ymax); printf("%c", 192); for (i = xmin + 1 ; i <= xmax - 1 ; i++) { gotoxy(i, ymax); printf("%c",196); }
+	gotoxy(xmax, ymin); printf("%c", 191); for (i = ymin + 1 ; i <= ymax - 1 ; i++) { gotoxy(xmin, i); printf("%c",179); }
+	gotoxy(xmax, ymax); printf("%c", 217); for (i = ymin + 1 ; i <= ymax - 1 ; i++) { gotoxy(xmax, i); printf("%c",179); }
+}
+
+int setcolor(char color)
+{
+    HANDLE h;
+    h = GetStdHandle(STD_OUTPUT_HANDLE);
+    return SetConsoleTextAttribute(h, color);
 }
